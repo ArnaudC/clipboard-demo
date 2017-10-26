@@ -1,7 +1,7 @@
 const electron = require('electron')
 const path = require('path')
 
-const {app, Tray, BrowserWindow, Menu, clipboard} = electron
+const {app, Tray, BrowserWindow, Menu, clipboard, globalShortcut} = electron
 
 const STACK_SIZE = 5, ITEM_MAX_LENGTH = 20
 
@@ -34,18 +34,31 @@ function checkClipboardForChange(clipboard, onChange) {// pull if the element ha
     }, 1000)
 }
 
+function registerShortcuts(globalShortcut, clipboard, stack) {
+    globalShortcut.unregisterAll()
+    for (let i = 0; i < STACK_SIZE; i++) {
+        globalShortcut.register(`Cmd+Alt+${i + 1}`, _ => {
+            clipboard.writeText(stack[i])
+        });
+    }
+}
+
 app.on('ready', _ => {
     let stack = []
     let tray = new Tray(path.join('img', 'tray.png'))
-    const menu = Menu.buildFromTemplate([{
+    let baseMenu = [{label: 'Clean the stack', click: _ => {stack = []; tray.setContextMenu(Menu.buildFromTemplate(baseMenu)) }}, {label: 'Quit', click: _ => app.quit()}]
+    let t = [{
         label: '<Empty>',
         enabled: false
-    }, {label: 'Quit', click: _ => app.quit()}])
+    }].concat(baseMenu)
+    const menu = Menu.buildFromTemplate(t)
     tray.setContextMenu(menu)
     checkClipboardForChange(clipboard, text => {
         stack = addToStack(text, stack)
         console.log('stack', stack)
-        tray.setContextMenu(Menu.buildFromTemplate(formatMenuFromTemplateForStack(stack)))
+        let t = formatMenuFromTemplateForStack(stack)
+        tray.setContextMenu(Menu.buildFromTemplate(t.concat(baseMenu)))
+        registerShortcuts(globalShortcut, clipboard, stack)
     })
 })
 

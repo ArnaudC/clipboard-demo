@@ -37,7 +37,8 @@ function checkClipboardForChange(clipboard, onChange) {// pull if the element ha
 function registerShortcuts(globalShortcut, clipboard, stack) {
     globalShortcut.unregisterAll()
     for (let i = 0; i < STACK_SIZE; i++) {
-        globalShortcut.register(`Cmd+Alt+${i + 1}`, _ => {
+        globalShortcut.register(`CommandOrControl+Alt+${i + 1}`, _ => {
+            console.log(`CommandOrControl+Alt+${i + 1}`)
             clipboard.writeText(stack[i])
         });
     }
@@ -46,7 +47,7 @@ function registerShortcuts(globalShortcut, clipboard, stack) {
 app.on('ready', _ => {
     let stack = []
     let tray = new Tray(path.join('img', 'tray.png'))
-    let baseMenu = [{label: 'Clean the stack', click: _ => {stack = []; tray.setContextMenu(Menu.buildFromTemplate(baseMenu)) }}, {label: 'Quit', click: _ => app.quit()}]
+    let baseMenu = [{label: 'Clean', click: _ => {stack = []; tray.setContextMenu(Menu.buildFromTemplate(baseMenu)) }}, {label: 'Quit', click: _ => app.quit()}]
     let t = [{
         label: '<Empty>',
         enabled: false
